@@ -24,7 +24,6 @@ WHITE = (255, 255, 255)
 user_text = ""
 input_rect = pygame.Rect(0, (HEIGHT / 2) + 100, WIDTH, (HEIGHT - ((HEIGHT / 2) + 100)))
 active = False
-text_surface = gen.render(user_text, True, (0, 0, 0)) 
 
 #classes
 class ObjectInterface():
@@ -67,7 +66,8 @@ pygame.display.set_caption("PyBot Simulator")
 def draw_window(pxs, pys):
     window.fill(WHITE)
     pygame.draw.line(window, (0, 0, 0), (0, (HEIGHT / 2) + 100), (WIDTH, (HEIGHT / 2) + 100), 5)
-    window.blit(text_surface, (input_rect.x+100, input_rect.y+100))
+    code = gen.render(user_text, True, (0, 0, 0)) 
+    window.blit(code, (10, (HEIGHT / 2) + 100))
     pygame.draw.polygon(window, (128, 128, 128), [[pxs[i], pys[i]] for i in range(3)])
     pygame.display.update()
 
