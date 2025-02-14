@@ -14,6 +14,7 @@ gen3 = pygame.font.SysFont("consolas", 15)
 #constants
 FPS = 60
 WIDTH, HEIGHT = 1200, 800
+MALICIOUS = ["import", "os", "open", "exec", "eval"]
 
 #colors
 WHITE = (255, 255, 255)
@@ -28,9 +29,13 @@ user_text = ""
 input_rect = pygame.Rect(0, (HEIGHT / 2) + 100, WIDTH, (HEIGHT - ((HEIGHT / 2) + 100)))
 run_button = pygame.Rect(WIDTH / 2 - 50, (HEIGHT / 2) + 100, 100, 45)
 active = False
-last = pygame.time.get_ticks()
-delay = 100
+lastBackspace = pygame.time.get_ticks()
+lastMouse = pygame.time.get_ticks()
+delayBackspace = 100
+delayMouse = 500
+cursorAvailable = False
 cur_except = ""
+last_mouse_pos = (None, None)
 
 #classes
 class ObjectInterface():
@@ -91,22 +96,33 @@ def drawException():
         window.blit(excep_text, (700, 525 + (i * 30)))
 
 def deleteText():
-    global delay, last, user_text
+    global delayBackspace, lastBackspace, user_text
     keys = pygame.key.get_pressed() 
     if active and keys[pygame.K_BACKSPACE]:
         cur_time = pygame.time.get_ticks()
-        if cur_time - last >= delay:
-            if user_text:
-                user_text = user_text[:-1]  
-            last = cur_time
-            user_text = user_text[:-1] 
-
+        if cur_time - lastBackspace >= delayBackspace:
+            lastBackspace = cur_time
+            user_text = user_text[:-2] 
+            
+def mouseFlicker(pos):
+    global delayMouse, lastMouse, cursorAvailable
+    if pos == (None, None):
+        return
+    cur_time = pygame.time.get_ticks()
+    if cur_time - lastMouse >= delayMouse:
+        cursorAvailable = not cursorAvailable
+        lastMouse = cur_time  
+    if cursorAvailable:
+        pygame.draw.line(window, BLACK, (pos[0], pos[1] - 10), (pos[0], pos[1] + 10), 2)
+    
 def draw_window(pxs, pys):
     window.fill(WHITE)
     draw_grid()
     drawCodeBox()
     drawText()
+    deleteText()
     drawException()
+    mouseFlicker(last_mouse_pos)
     pygame.draw.polygon(window, GRAY, [[pxs[i], pys[i]] for i in range(3)])
     pygame.display.update()
 
@@ -114,25 +130,47 @@ class RobotActions:
     def __init__(self, robot):
         self.robot = robot
         self.dire = "right"
+        self.badSquares = set()
     def MOVE_FORWARD(self):
+        global cur_except
         if self.dire == "right":
-            self.robot.x1 += 50
-            self.robot.x2 += 50
-            self.robot.x3 += 50
+            best = max(self.robot.x1, self.robot.x2, self.robot.x3)
+            if self.ok([best + 50, self.robot.y1]):
+                self.robot.x1 += 50
+                self.robot.x2 += 50
+                self.robot.x3 += 50
+            else:
+                cur_except = "robot will go out of bounds :("
+                return
         elif self.dire == "down":
-            self.robot.y1 += 50
-            self.robot.y2 += 50
-            self.robot.y3 += 50
+            best = max(self.robot.y1, self.robot.y2, self.robot.y3)
+            if self.ok([self.robot.x1, best + 50]):
+                self.robot.y1 += 50
+                self.robot.y2 += 50
+                self.robot.y3 += 50
+            else:
+                cur_except = "robot will go out of bounds :("
+                return
         elif self.dire == "up":
-            self.robot.y1 -= 50
-            self.robot.y2 -= 50
-            self.robot.y3 -= 50
+            best = min(self.robot.y1, self.robot.y2, self.robot.y3)
+            if self.ok([self.robot.x1, best - 50]):
+                self.robot.y1 -= 50
+                self.robot.y2 -= 50
+                self.robot.y3 -= 50
+            else:
+                cur_except = "robot will go out of bounds :("
+                return
         else:
-            self.robot.x1 -= 50
-            self.robot.x2 -= 50
-            self.robot.x3 -= 50
+            best = min(self.robot.x1, self.robot.x2, self.robot.x3)
+            if self.ok([best - 50, self.robot.y1]):
+                self.robot.x1 -= 50
+                self.robot.x2 -= 50
+                self.robot.x3 -= 50
+            else:
+                cur_except = "robot will go out of bounds :("
+                return
         draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(1)
+        time.sleep(0.5)
 
     def ROTATE_LEFT(self):
         if self.dire == "right":
@@ -160,7 +198,7 @@ class RobotActions:
             self.robot.y3 += 25
             self.dire = "down"
         draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(1)
+        time.sleep(0.5)
 
     def ROTATE_RIGHT(self):
         if self.dire == "right":
@@ -188,34 +226,35 @@ class RobotActions:
             self.robot.y3 -= 25
             self.dire = "up"
         draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(1)
+        time.sleep(0.5)
+
     def ok(self, *args):
         for arg in args:
             x, y = arg[0], arg[1]
-            if (not ((0 <= x <= WIDTH))) or (not (0 <= y <= ((HEIGHT / 2) + 100))):
+            if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100)) & ((x, y) not in self.badSquares)):
                 return False
         return True
+    
     def CAN_MOVE(self, direc):
+        global cur_except
         t1, t2, t3, t4, t5, t6 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
         if direc == "forward":
             if self.ok([t1, t2 + 50], [t3, t4 + 50], [t5, t6 + 50]):
                 return True
-            return False
         elif direc == "backward":
             if self.ok([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
                 return True
-            return False
         elif direc == "left":
             if self.ok([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
                 return True
-            return False
         else:
             if self.ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
                 return True
-            return False
+        cur_except = "robot will go out of bounds :("
+        return False
         
 def main():
-    global user_text, active, cur_except, robot
+    global user_text, active, cur_except, robot, last_mouse_pos
     clock = pygame.time.Clock()
     clock.tick(FPS)
     run = True  
@@ -226,18 +265,24 @@ def main():
                 run = False
             elif event.type == pygame.MOUSEBUTTONDOWN: 
                 if input_rect.collidepoint(event.pos): 
+                    last_mouse_pos = pygame.mouse.get_pos()
                     active = True
                 else: 
+                    last_mouse_pos = (None, None)
                     active = False
                 if run_button.collidepoint(event.pos):
+                    cur_except = ""
                     try:
                         time.sleep(0.5)
-                        user_text_with_actions = user_text.replace("MOVE_FORWARD()", "actions.MOVE_FORWARD()") \
-                                                           .replace("ROTATE_LEFT()", "actions.ROTATE_LEFT()") \
-                                                           .replace("ROTATE_RIGHT()", "actions.ROTATE_RIGHT()") \
-                                                           .replace("CAN_MOVE(", "actions.CAN_MOVE(")
-                        exec(user_text_with_actions, globals(), locals())
-                        cur_except = ""
+                        for bad in MALICIOUS:
+                            if bad in user_text:
+                                raise Exception
+                        else:
+                            user_text_with_actions = user_text.replace("MOVE_FORWARD()", "actions.MOVE_FORWARD()") \
+                                                            .replace("ROTATE_LEFT()", "actions.ROTATE_LEFT()") \
+                                                            .replace("ROTATE_RIGHT()", "actions.ROTATE_RIGHT()") \
+                                                            .replace("CAN_MOVE(", "actions.CAN_MOVE(")
+                            exec(user_text_with_actions, globals(), locals())
                     except Exception as e:
                         cnt = 0
                         new = []
@@ -248,6 +293,9 @@ def main():
                             new.append(str(e)[i])
                             cnt += 1
                         cur_except = "".join(new)
+                        #when the user types in something malicious
+                        if not cur_except:
+                            cur_except = "program no like malicious code :("
                     finally:
                         robot.x1 = 0
                         robot.x2 = 0
@@ -264,7 +312,6 @@ def main():
                         user_text += "   "
                     else:
                         user_text += event.unicode
-        deleteText()
         draw_window(robot.getXpos(), robot.getYpos())
         pygame.display.update()
     pygame.quit()
