@@ -21,13 +21,14 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 GRAY = (128, 128, 128)
+PURPLE = (128, 0, 128)
 
 #sfx
 
 #simulator variables
 user_text = ""
 input_rect = pygame.Rect(0, (HEIGHT / 2) + 100, WIDTH, (HEIGHT - ((HEIGHT / 2) + 100)))
-run_button = pygame.Rect(WIDTH / 2 - 50, (HEIGHT / 2) + 100, 100, 45)
+run_button = pygame.Rect(WIDTH / 2 - 110, (HEIGHT / 2) + 100, 220, 45)
 active = False
 lastBackspace = pygame.time.get_ticks()
 lastMouse = pygame.time.get_ticks()
@@ -73,41 +74,49 @@ class RobotActions:
     def MOVE_FORWARD(self):
         global cur_except
         if self.dire == "right":
-            best = max(self.robot.x1, self.robot.x2, self.robot.x3)
-            if self.ok([best + 50, self.robot.y1]):
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            for i in range(3):
+                if not self.ok([xs[i] + 50, ys[i]]):
+                    cur_except = "robot will go out of bounds :("
+                    return
+            else:
                 self.robot.x1 += 50
                 self.robot.x2 += 50
                 self.robot.x3 += 50
-            else:
-                cur_except = "robot will go out of bounds :("
-                return
         elif self.dire == "down":
-            best = max(self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([self.robot.x1, best + 50]):
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            for i in range(3):
+                if not self.ok([xs[i], ys[i] + 50]):
+                    cur_except = "robot will go out of bounds :("
+                    return
+            else:
                 self.robot.y1 += 50
                 self.robot.y2 += 50
                 self.robot.y3 += 50
-            else:
-                cur_except = "robot will go out of bounds :("
-                return
         elif self.dire == "up":
-            best = min(self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([self.robot.x1, best - 50]):
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            for i in range(3):
+                if not self.ok([xs[i], ys[i] - 50]):
+                    cur_except = "robot will go out of bounds :("
+                    return
+            else:
                 self.robot.y1 -= 50
                 self.robot.y2 -= 50
                 self.robot.y3 -= 50
-            else:
-                cur_except = "robot will go out of bounds :("
-                return
         else:
-            best = min(self.robot.x1, self.robot.x2, self.robot.x3)
-            if self.ok([best - 50, self.robot.y1]):
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            for i in range(3):
+                if not self.ok([xs[i] - 50, ys[i]]):
+                    cur_except = "robot will go out of bounds :("
+                    return
+            else:
                 self.robot.x1 -= 50
                 self.robot.x2 -= 50
                 self.robot.x3 -= 50
-            else:
-                cur_except = "robot will go out of bounds :("
-                return
         draw_window(robot.getXpos(), robot.getYpos())
         time.sleep(0.5)
 
@@ -170,9 +179,16 @@ class RobotActions:
     def ok(self, *args):
         for arg in args:
             x, y = arg[0], arg[1]
-            if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100)) & ((y, x) not in self.badSquares)):
+            if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100))):
                 return False
-        return True
+            else:
+                for bad in self.badSquares:
+                    temp1, temp2 = bad[0], bad[1]
+                    #it's okay if it touches the next square (<)
+                    if (temp1 < y <= (temp1 + 50)) and (temp2 < x <= (temp2 + 50)):
+                        return False
+                else:
+                    return True
     
     def CAN_MOVE(self, direc):
         global cur_except
@@ -221,15 +237,16 @@ def drawText():
 
 def drawCodeBox():
     pygame.draw.line(window, BLACK, (0, (HEIGHT / 2) + 100), (WIDTH, (HEIGHT / 2) + 100), 5)
+    pygame.draw.rect(window, PURPLE, input_rect)
     pygame.draw.rect(window, GREEN, run_button)
-    run_text = gen2.render("RUN", True, BLACK)
+    run_text = gen2.render("Run Code", True, BLACK)
     window.blit(run_text, (run_button.x, run_button.y))
 
 def drawException():
     lines = cur_except.splitlines()
     for i, line in enumerate(lines):
-        excep_text = gen3.render(line, True, BLACK)
-        window.blit(excep_text, (700, 525 + (i * 30)))
+        excep_text = gen3.render(line, True, WHITE)
+        window.blit(excep_text, (735, 525 + (i * 30)))
 
 def deleteText():
     global delayBackspace, lastBackspace, user_text, last_mouse_pos
@@ -340,7 +357,7 @@ def main():
                         if last_mouse_pos != (None, None):
                             last_mouse_pos = (last_mouse_pos[0] + 42, last_mouse_pos[1])
                         user_text += "   "
-                    elif event.key != pygame.K_BACKSPACE:
+                    elif event.key not in [pygame.K_BACKSPACE, pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_CAPSLOCK]:
                         if last_mouse_pos != (None, None):
                             last_mouse_pos = (last_mouse_pos[0] + 14, last_mouse_pos[1])
                         user_text += event.unicode
