@@ -32,9 +32,6 @@ last = pygame.time.get_ticks()
 delay = 100
 cur_except = ""
 
-#player variables
-dire = "right"
-
 #classes
 class ObjectInterface():
     def __init__(self, xpos, ypos):
@@ -61,6 +58,9 @@ class Player():
         return [self.x1, self.x2, self.x3]
     def getYpos(self):
         return [self.y1, self.y2, self.y3]
+    
+#player variables
+robot = Player(0, 0, 0, 50, 50, 25)    
 
 #window
 window = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -90,15 +90,6 @@ def drawException():
         excep_text = gen3.render(line, True, BLACK)
         window.blit(excep_text, (700, 525 + (i * 30)))
 
-def draw_window(pxs, pys):
-    window.fill(WHITE)
-    draw_grid()
-    drawCodeBox()
-    drawText()
-    drawException()
-    pygame.draw.polygon(window, GRAY, [[pxs[i], pys[i]] for i in range(3)])
-    pygame.display.update()
-
 def deleteText():
     global delay, last, user_text
     keys = pygame.key.get_pressed() 
@@ -110,117 +101,125 @@ def deleteText():
             last = cur_time
             user_text = user_text[:-1] 
 
-def main():
-    global user_text, dire, active, cur_except
-    clock = pygame.time.Clock()
-    clock.tick(FPS)
-    run = True
-    robot = Player(0, 0, 0, 50, 50, 25)
-    def MOVE_FORWARD():
-        global dire
-        if dire == "right":
-            robot.x1 += 50
-            robot.x2 += 50
-            robot.x3 += 50
-        elif dire == "down":
-            robot.y1 += 50
-            robot.y2 += 50
-            robot.y3 += 50
-        elif dire == "up":
-            robot.y1 -= 50
-            robot.y2 -= 50
-            robot.y3 -= 50
+def draw_window(pxs, pys):
+    window.fill(WHITE)
+    draw_grid()
+    drawCodeBox()
+    drawText()
+    drawException()
+    pygame.draw.polygon(window, GRAY, [[pxs[i], pys[i]] for i in range(3)])
+    pygame.display.update()
+
+class RobotActions:
+    def __init__(self, robot):
+        self.robot = robot
+        self.dire = "right"
+    def MOVE_FORWARD(self):
+        if self.dire == "right":
+            self.robot.x1 += 50
+            self.robot.x2 += 50
+            self.robot.x3 += 50
+        elif self.dire == "down":
+            self.robot.y1 += 50
+            self.robot.y2 += 50
+            self.robot.y3 += 50
+        elif self.dire == "up":
+            self.robot.y1 -= 50
+            self.robot.y2 -= 50
+            self.robot.y3 -= 50
         else:
-            robot.x1 -= 50
-            robot.x2 -= 50
-            robot.x3 -= 50
+            self.robot.x1 -= 50
+            self.robot.x2 -= 50
+            self.robot.x3 -= 50
         draw_window(robot.getXpos(), robot.getYpos())
         time.sleep(1)
 
-    def ROTATE_LEFT():
-        global dire
-        if dire == "right":
-            robot.y1 += 50
-            robot.x2 += 50
-            robot.x3 -= 25
-            robot.y3 -= 25
-            dire = "up"
-        elif dire == "down":
-            robot.x1 -= 50
-            robot.y2 += 50
-            robot.x3 += 25
-            robot.y3 -= 25
-            dire = "right"
-        elif dire == "up":
-            robot.x1 += 50
-            robot.y2 -= 50
-            robot.x3 -= 25
-            robot.y3 += 25
-            dire = "left"
+    def ROTATE_LEFT(self):
+        if self.dire == "right":
+            self.robot.y1 += 50
+            self.robot.x2 += 50
+            self.robot.x3 -= 25
+            self.robot.y3 -= 25
+            self.dire = "up"
+        elif self.dire == "down":
+            self.robot.x1 -= 50
+            self.robot.y2 += 50
+            self.robot.x3 += 25
+            self.robot.y3 -= 25
+            self.dire = "right"
+        elif self.dire == "up":
+            self.robot.x1 += 50
+            self.robot.y2 -= 50
+            self.robot.x3 -= 25
+            self.robot.y3 += 25
+            self.dire = "left"
         else:
-            robot.y1 -= 50
-            robot.x2 -= 50
-            robot.x3 += 25
-            robot.y3 += 25
-            dire = "down"
+            self.robot.y1 -= 50
+            self.robot.x2 -= 50
+            self.robot.x3 += 25
+            self.robot.y3 += 25
+            self.dire = "down"
         draw_window(robot.getXpos(), robot.getYpos())
         time.sleep(1)
 
-    def ROTATE_RIGHT():
-        global dire
-        if dire == "right":
-            robot.x1 += 50
-            robot.y2 -= 50
-            robot.x3 -= 25
-            robot.y3 += 25
-            dire = "down"
-        elif dire == "down":
-            robot.y1 += 50
-            robot.x2 += 50
-            robot.x3 -= 25
-            robot.y3 -= 25
-            dire = "left"
-        elif dire == "up":
-            robot.y1 -= 50
-            robot.x2 -= 50
-            robot.x3 += 25
-            robot.y3 += 25
-            dire = "right"
+    def ROTATE_RIGHT(self):
+        if self.dire == "right":
+            self.robot.x1 += 50
+            self.robot.y2 -= 50
+            self.robot.x3 -= 25
+            self.robot.y3 += 25
+            self.dire = "down"
+        elif self.dire == "down":
+            self.robot.y1 += 50
+            self.robot.x2 += 50
+            self.robot.x3 -= 25
+            self.robot.y3 -= 25
+            self.dire = "left"
+        elif self.dire == "up":
+            self.robot.y1 -= 50
+            self.robot.x2 -= 50
+            self.robot.x3 += 25
+            self.robot.y3 += 25
+            self.dire = "right"
         else:
-            robot.x1 -= 50
-            robot.y2 += 50
-            robot.x3 += 25
-            robot.y3 -= 25
-            dire = "up"
+            self.robot.x1 -= 50
+            self.robot.y2 += 50
+            self.robot.x3 += 25
+            self.robot.y3 -= 25
+            self.dire = "up"
         draw_window(robot.getXpos(), robot.getYpos())
         time.sleep(1)
-
-    def CAN_MOVE(direc):
-        t1, t2, t3, t4, t5, t6 = robot.x1, robot.y1, robot.x2, robot.y2, robot.x3, robot.y3
-        if direc == "forward":
-            if ok([t1, t2 + 50], [t3, t4 + 50], [t5, t6 + 50]):
-                return True
-            return False
-        elif direc == "backward":
-            if ok([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
-                return True
-            return False
-        elif direc == "left":
-            if ok([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
-                return True
-            return False
-        else:
-            if ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
-                return True
-            return False
-
-    def ok(*args):
+    def ok(self, *args):
         for arg in args:
             x, y = arg[0], arg[1]
             if (not ((0 <= x <= WIDTH))) or (not (0 <= y <= ((HEIGHT / 2) + 100))):
                 return False
         return True
-
+    def CAN_MOVE(self, direc):
+        t1, t2, t3, t4, t5, t6 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
+        if direc == "forward":
+            if self.ok([t1, t2 + 50], [t3, t4 + 50], [t5, t6 + 50]):
+                return True
+            return False
+        elif direc == "backward":
+            if self.ok([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
+                return True
+            return False
+        elif direc == "left":
+            if self.ok([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
+                return True
+            return False
+        else:
+            if self.ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
+                return True
+            return False
+        
+def main():
+    global user_text, active, cur_except, robot
+    clock = pygame.time.Clock()
+    clock.tick(FPS)
+    run = True  
+    actions = RobotActions(robot)
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -233,7 +232,11 @@ def main():
                 if run_button.collidepoint(event.pos):
                     try:
                         time.sleep(0.5)
-                        exec(user_text)
+                        user_text_with_actions = user_text.replace("MOVE_FORWARD()", "actions.MOVE_FORWARD()") \
+                                                           .replace("ROTATE_LEFT()", "actions.ROTATE_LEFT()") \
+                                                           .replace("ROTATE_RIGHT()", "actions.ROTATE_RIGHT()") \
+                                                           .replace("CAN_MOVE(", "actions.CAN_MOVE(")
+                        exec(user_text_with_actions, globals(), locals())
                         cur_except = ""
                     except Exception as e:
                         cnt = 0
@@ -252,7 +255,7 @@ def main():
                         robot.y1 = 0
                         robot.y2 = 50
                         robot.y3 = 25
-                        dire = "right"
+                        actions.dire = "right"
             elif event.type == pygame.KEYDOWN:
                 if active:
                     if event.key == pygame.K_RETURN:
