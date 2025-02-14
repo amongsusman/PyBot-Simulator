@@ -36,6 +36,7 @@ delayMouse = 500
 cursorAvailable = False
 cur_except = ""
 last_mouse_pos = (None, None)
+squaresSelected = [[False] * 24 for i in range(10)]
 
 #classes
 class ObjectInterface():
@@ -64,68 +65,6 @@ class Player():
     def getYpos(self):
         return [self.y1, self.y2, self.y3]
     
-#player variables
-robot = Player(0, 0, 0, 50, 50, 25)    
-
-#window
-window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("PyBot Simulator")
-
-def draw_grid():
-    for x in range(0, WIDTH, 50):
-        pygame.draw.line(window, BLACK, (x, 0), (x, (HEIGHT // 2) + 100))
-    for y in range(0, (HEIGHT // 2) + 100, 50):
-        pygame.draw.line(window, BLACK, (0, y), (WIDTH, y))
-            
-def drawText():
-    lines = user_text.splitlines()
-    for i, line in enumerate(lines):
-        code = gen.render(line, True, BLACK) 
-        window.blit(code, (10, (HEIGHT / 2) + 105 + i * 30))
-
-def drawCodeBox():
-    pygame.draw.line(window, BLACK, (0, (HEIGHT / 2) + 100), (WIDTH, (HEIGHT / 2) + 100), 5)
-    pygame.draw.rect(window, GREEN, run_button)
-    run_text = gen2.render("RUN", True, BLACK)
-    window.blit(run_text, (run_button.x, run_button.y))
-
-def drawException():
-    lines = cur_except.splitlines()
-    for i, line in enumerate(lines):
-        excep_text = gen3.render(line, True, BLACK)
-        window.blit(excep_text, (700, 525 + (i * 30)))
-
-def deleteText():
-    global delayBackspace, lastBackspace, user_text
-    keys = pygame.key.get_pressed() 
-    if active and keys[pygame.K_BACKSPACE]:
-        cur_time = pygame.time.get_ticks()
-        if cur_time - lastBackspace >= delayBackspace:
-            lastBackspace = cur_time
-            user_text = user_text[:-2] 
-            
-def mouseFlicker(pos):
-    global delayMouse, lastMouse, cursorAvailable
-    if pos == (None, None):
-        return
-    cur_time = pygame.time.get_ticks()
-    if cur_time - lastMouse >= delayMouse:
-        cursorAvailable = not cursorAvailable
-        lastMouse = cur_time  
-    if cursorAvailable:
-        pygame.draw.line(window, BLACK, (pos[0], pos[1] - 10), (pos[0], pos[1] + 10), 2)
-    
-def draw_window(pxs, pys):
-    window.fill(WHITE)
-    draw_grid()
-    drawCodeBox()
-    drawText()
-    deleteText()
-    drawException()
-    mouseFlicker(last_mouse_pos)
-    pygame.draw.polygon(window, GRAY, [[pxs[i], pys[i]] for i in range(3)])
-    pygame.display.update()
-
 class RobotActions:
     def __init__(self, robot):
         self.robot = robot
@@ -231,7 +170,7 @@ class RobotActions:
     def ok(self, *args):
         for arg in args:
             x, y = arg[0], arg[1]
-            if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100)) & ((x, y) not in self.badSquares)):
+            if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100)) & ((y, x) not in self.badSquares)):
                 return False
         return True
     
@@ -252,13 +191,99 @@ class RobotActions:
                 return True
         cur_except = "robot will go out of bounds :("
         return False
+
+#player variables
+robot = Player(0, 0, 0, 50, 50, 25)    
+actions = RobotActions(robot)
+
+#window
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("PyBot Simulator")
+
+def draw_grid():
+    for x in range(0, WIDTH, 50):
+        for y in range(0, (HEIGHT // 2) + 100, 50):
+            rect = pygame.Rect(x, y, 50, 50)
+            newx, newy = x // 50, y // 50
+            #flip x and y because y is the row index while x is the column index
+            if squaresSelected[newy][newx]:
+                pygame.draw.rect(window, BLACK, rect)
+            else:
+                pygame.draw.rect(window, WHITE, rect)
+            border_rect = rect.inflate(5, 5)  
+            pygame.draw.rect(window, BLACK, border_rect, 4) 
+            
+def drawText():
+    lines = user_text.splitlines()
+    for i, line in enumerate(lines):
+        code = gen.render(line, True, BLACK) 
+        window.blit(code, (10, (HEIGHT / 2) + 105 + i * 30))
+
+def drawCodeBox():
+    pygame.draw.line(window, BLACK, (0, (HEIGHT / 2) + 100), (WIDTH, (HEIGHT / 2) + 100), 5)
+    pygame.draw.rect(window, GREEN, run_button)
+    run_text = gen2.render("RUN", True, BLACK)
+    window.blit(run_text, (run_button.x, run_button.y))
+
+def drawException():
+    lines = cur_except.splitlines()
+    for i, line in enumerate(lines):
+        excep_text = gen3.render(line, True, BLACK)
+        window.blit(excep_text, (700, 525 + (i * 30)))
+
+def deleteText():
+    global delayBackspace, lastBackspace, user_text, last_mouse_pos
+    keys = pygame.key.get_pressed() 
+    if active and keys[pygame.K_BACKSPACE]:
+        cur_time = pygame.time.get_ticks()
+        if cur_time - lastBackspace >= delayBackspace:
+            lastBackspace = cur_time
+            user_text = user_text[:-1]             
+            if last_mouse_pos != (None, None):
+                last_mouse_pos = (max(10, last_mouse_pos[0] - 14), last_mouse_pos[1])
+            
+def mouseFlicker(pos):
+    global delayMouse, lastMouse, cursorAvailable
+    if pos == (None, None):
+        return
+    cur_time = pygame.time.get_ticks()
+    if cur_time - lastMouse >= delayMouse:
+        cursorAvailable = not cursorAvailable
+        lastMouse = cur_time  
+    if cursorAvailable:
+        pygame.draw.line(window, BLACK, (pos[0], pos[1] - 10), (pos[0], pos[1] + 10), 2)
+
+def selectSquare(posx, posy):
+    diff1 = posx % 50
+    diff2 = posy % 50
+    posx -= diff1
+    posy -= diff2
+    posx //= 50
+    posy //= 50
+    #flip x and y because y is the row index while x is the column index
+    if squaresSelected[posy][posx] == True:
+        actions.badSquares.discard((posy * 50, posx * 50))
+        squaresSelected[posy][posx] = not squaresSelected[posy][posx]
+    else:
+        actions.badSquares.add((posy * 50, posx * 50))
+        squaresSelected[posy][posx] = not squaresSelected[posy][posx]
+
+def draw_window(pxs, pys):
+    window.fill(WHITE)
+    draw_grid()
+    drawCodeBox()
+    drawText()
+    deleteText()
+    drawException()
+    mouseFlicker(last_mouse_pos)
+    pygame.draw.polygon(window, GRAY, [[pxs[i], pys[i]] for i in range(3)])
+    pygame.display.update()
         
 def main():
-    global user_text, active, cur_except, robot, last_mouse_pos
+    global user_text, active, cur_except, robot, last_mouse_pos, actions
     clock = pygame.time.Clock()
     clock.tick(FPS)
     run = True  
-    actions = RobotActions(robot)
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -268,6 +293,7 @@ def main():
                     last_mouse_pos = pygame.mouse.get_pos()
                     active = True
                 else: 
+                    selectSquare(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                     last_mouse_pos = (None, None)
                     active = False
                 if run_button.collidepoint(event.pos):
@@ -307,10 +333,16 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if active:
                     if event.key == pygame.K_RETURN:
+                        if last_mouse_pos != (None, None):
+                            last_mouse_pos = (10, last_mouse_pos[1] + 30)
                         user_text += "\n"
                     elif event.key == pygame.K_TAB:
+                        if last_mouse_pos != (None, None):
+                            last_mouse_pos = (last_mouse_pos[0] + 42, last_mouse_pos[1])
                         user_text += "   "
-                    else:
+                    elif event.key != pygame.K_BACKSPACE:
+                        if last_mouse_pos != (None, None):
+                            last_mouse_pos = (last_mouse_pos[0] + 14, last_mouse_pos[1])
                         user_text += event.unicode
         draw_window(robot.getXpos(), robot.getYpos())
         pygame.display.update()
