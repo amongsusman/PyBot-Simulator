@@ -202,7 +202,6 @@ class RobotActions:
         else:
             if self.ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
                 return True
-        cur_except = "robot will go out of bounds :("
         return False
 
 #player variables
