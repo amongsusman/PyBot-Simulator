@@ -182,7 +182,6 @@ class RobotActions:
                 temp1, temp2 = bad[0], bad[1]
                 if (temp1 <= y <= (temp1 + 50)) and (temp2 <= x <= (temp2 + 50)):
                     hitMap[bad] = 1 + hitMap.get(bad, 0)
-                    break
         if hitMap.values() and len(args) == max(hitMap.values()):
             return False
         return True
@@ -199,7 +198,7 @@ class RobotActions:
         elif direc == "left":
             if self.ok([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
                 return True
-        else:
+        elif direc == "right":
             if self.ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
                 return True
         return False
