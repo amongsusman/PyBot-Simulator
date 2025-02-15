@@ -112,7 +112,7 @@ class RobotActions:
                 cur_except = "robot will go out of bounds :("
         draw_window(robot.getXpos(), robot.getYpos())
         if cur_except != "robot will go out of bounds :(":
-            time.sleep(0.5)
+            time.sleep(0.25)
 
     def ROTATE_LEFT(self):
         if self.dire == "right":
@@ -141,7 +141,7 @@ class RobotActions:
             self.dire = "down"
         if cur_except != "robot will go out of bounds :(":
             draw_window(robot.getXpos(), robot.getYpos())
-            time.sleep(0.5)
+            time.sleep(0.25)
 
     def ROTATE_RIGHT(self):
         if self.dire == "right":
@@ -170,7 +170,7 @@ class RobotActions:
             self.dire = "up"
         if cur_except != "robot will go out of bounds :(":
             draw_window(robot.getXpos(), robot.getYpos())
-            time.sleep(0.5)
+            time.sleep(0.25)
 
     def ok(self, *args):
         hitMap = {}
@@ -183,7 +183,7 @@ class RobotActions:
                 if (temp1 <= y <= (temp1 + 50)) and (temp2 <= x <= (temp2 + 50)):
                     hitMap[bad] = 1 + hitMap.get(bad, 0)
                     break
-        if len(args) == max(hitMap.values()):
+        if hitMap.values() and len(args) == max(hitMap.values()):
             return False
         return True
     
@@ -304,51 +304,54 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.MOUSEBUTTONDOWN: 
-                if active and event.button == 4:
-                    pointer = max(0, pointer - 1)
-                elif active and event.button == 5:
-                    pointer += 1
-                if input_rect.collidepoint(event.pos): 
-                    last_mouse_pos = pygame.mouse.get_pos()
-                    active = True
-                else: 
-                    selectSquare(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
-                    last_mouse_pos = (None, None)
-                    active = False
-                if run_button.collidepoint(event.pos):
-                    cur_except = ""
-                    try:
-                        time.sleep(0.5)
-                        for bad in MALICIOUS:
-                            if bad in user_text:
-                                raise Exception
-                        else:
-                            user_text_with_actions = user_text.replace("MOVE_FORWARD()", "actions.MOVE_FORWARD()") \
-                                                            .replace("ROTATE_LEFT()", "actions.ROTATE_LEFT()") \
-                                                            .replace("ROTATE_RIGHT()", "actions.ROTATE_RIGHT()") \
-                                                            .replace("CAN_MOVE(", "actions.CAN_MOVE(")
-                            exec(user_text_with_actions, globals(), locals())
-                    except Exception as e:
-                        cnt = 0
-                        new = []
-                        for i in range(len(str(e))):
-                            if cnt == 50:
-                                cnt = 0
-                                new.append("\n")
-                            new.append(str(e)[i])
-                            cnt += 1
-                        cur_except = "".join(new)
-                        #when the user types in something malicious
-                        if not cur_except:
-                            cur_except = "program no like malicious code :("
-                    finally:
-                        robot.x1 = 0
-                        robot.x2 = 0
-                        robot.x3 = 50
-                        robot.y1 = 0
-                        robot.y2 = 50
-                        robot.y3 = 25
-                        actions.dire = "right"
+                if event.button == 4:
+                    if active:
+                        pointer = max(0, pointer - 1)
+                elif event.button == 5:
+                    if active:
+                        pointer += 1
+                elif event.button == 1:
+                    if input_rect.collidepoint(event.pos): 
+                        last_mouse_pos = pygame.mouse.get_pos()
+                        active = True
+                    else: 
+                        selectSquare(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
+                        last_mouse_pos = (None, None)
+                        active = False
+                    if run_button.collidepoint(event.pos):
+                        cur_except = ""
+                        try:
+                            time.sleep(0.25)
+                            for bad in MALICIOUS:
+                                if bad in user_text:
+                                    raise Exception
+                            else:
+                                user_text_with_actions = user_text.replace("MOVE_FORWARD()", "actions.MOVE_FORWARD()") \
+                                                                .replace("ROTATE_LEFT()", "actions.ROTATE_LEFT()") \
+                                                                .replace("ROTATE_RIGHT()", "actions.ROTATE_RIGHT()") \
+                                                                .replace("CAN_MOVE(", "actions.CAN_MOVE(")
+                                exec(user_text_with_actions, globals(), locals())
+                        except Exception as e:
+                            cnt = 0
+                            new = []
+                            for i in range(len(str(e))):
+                                if cnt == 50:
+                                    cnt = 0
+                                    new.append("\n")
+                                new.append(str(e)[i])
+                                cnt += 1
+                            cur_except = "".join(new)
+                            #when the user types in something malicious
+                            if not cur_except:
+                                cur_except = "program no like malicious code :("
+                        finally:
+                            robot.x1 = 0
+                            robot.x2 = 0
+                            robot.x3 = 50
+                            robot.y1 = 0
+                            robot.y2 = 50
+                            robot.y3 = 25
+                            actions.dire = "right"
             elif event.type == pygame.KEYDOWN:
                 if active:
                     if event.key == pygame.K_RETURN:
