@@ -1,4 +1,7 @@
 PyBot Simulator is an easy to use APCSP resource material to help students prepare for the APCSP exam. 
+
+
+
 This simulator focuses on specifically robot questions where students will be asked to answer questions about where a robot will end up after running some code or some other relationship between a robot and code.
 It incorporates combined syntax between the easy to use Python language and the pseudocode used in the APCSP exam. 
 Users are able to type their own code into a textbox where they will be able to run functions that will allow a robot on the screen to move. 
