@@ -32,10 +32,11 @@ run_button = pygame.Rect(WIDTH / 2 - 110, (HEIGHT / 2) + 100, 220, 45)
 active = False
 lastBackspace = pygame.time.get_ticks()
 lastMouse = pygame.time.get_ticks()
-delayBackspace = 100
+delayBackspace = 50
 delayMouse = 500
 cursorAvailable = False
 cur_except = ""
+pointer = 0
 last_mouse_pos = (None, None)
 squaresSelected = [[False] * 24 for i in range(10)]
 
@@ -231,6 +232,7 @@ def draw_grid():
             
 def drawText():
     lines = user_text.splitlines()
+    lines = lines[pointer:]
     for i, line in enumerate(lines):
         code = gen.render(line, True, BLACK) 
         window.blit(code, (10, (HEIGHT / 2) + 105 + i * 30))
@@ -297,7 +299,7 @@ def draw_window(pxs, pys):
     pygame.display.update()
         
 def main():
-    global user_text, active, cur_except, robot, last_mouse_pos, actions
+    global user_text, active, cur_except, robot, last_mouse_pos, actions, pointer
     clock = pygame.time.Clock()
     clock.tick(FPS)
     run = True  
@@ -306,6 +308,10 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.MOUSEBUTTONDOWN: 
+                if active and event.button == 4:
+                    pointer = max(0, pointer - 1)
+                elif active and event.button == 5:
+                    pointer += 1
                 if input_rect.collidepoint(event.pos): 
                     last_mouse_pos = pygame.mouse.get_pos()
                     active = True
