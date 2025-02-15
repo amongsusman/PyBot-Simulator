@@ -32,7 +32,7 @@ run_button = pygame.Rect(WIDTH / 2 - 110, (HEIGHT / 2) + 100, 220, 45)
 active = False
 lastBackspace = pygame.time.get_ticks()
 lastMouse = pygame.time.get_ticks()
-delayBackspace = 50
+delayBackspace = 75
 delayMouse = 500
 cursorAvailable = False
 cur_except = ""
@@ -77,49 +77,42 @@ class RobotActions:
         if self.dire == "right":
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            for i in range(3):
-                if not self.ok([xs[i] + 50, ys[i]]):
-                    cur_except = "robot will go out of bounds :("
-                    return
-            else:
+            if self.ok([xs[0] + 50, ys[0]], [xs[1] + 50, ys[1]], [xs[2] + 50, ys[2]]):
                 self.robot.x1 += 50
                 self.robot.x2 += 50
                 self.robot.x3 += 50
-        elif self.dire == "down":
+            else:
+                cur_except = "robot will go out of bounds :("
+        elif self.dire == "left":
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            for i in range(3):
-                if not self.ok([xs[i], ys[i] + 50]):
-                    cur_except = "robot will go out of bounds :("
-                    return
-            else:
-                self.robot.y1 += 50
-                self.robot.y2 += 50
-                self.robot.y3 += 50
-        elif self.dire == "up":
-            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
-            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            for i in range(3):
-                if not self.ok([xs[i], ys[i] - 50]):
-                    cur_except = "robot will go out of bounds :("
-                    return
-            else:
-                self.robot.y1 -= 50
-                self.robot.y2 -= 50
-                self.robot.y3 -= 50
-        else:
-            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
-            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            for i in range(3):
-                if not self.ok([xs[i] - 50, ys[i]]):
-                    cur_except = "robot will go out of bounds :("
-                    return
-            else:
+            if self.ok([xs[0] - 50, ys[0]], [xs[1] - 50, ys[1]], [xs[2] - 50, ys[2]]):
                 self.robot.x1 -= 50
                 self.robot.x2 -= 50
                 self.robot.x3 -= 50
+            else:
+                cur_except = "robot will go out of bounds :("
+        elif self.dire == "up":
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            if self.ok([xs[0], ys[0] - 50], [xs[1], ys[1] - 50], [xs[2], ys[2] - 50]):
+                self.robot.y1 -= 50
+                self.robot.y2 -= 50
+                self.robot.y3 -= 50
+            else:
+                cur_except = "robot will go out of bounds :("
+        else:
+            xs = (self.robot.x1, self.robot.x2, self.robot.x3)
+            ys = (self.robot.y1, self.robot.y2, self.robot.y3)
+            if self.ok([xs[0], ys[0] + 50], [xs[1], ys[1] + 50], [xs[2], ys[2] + 50]):
+                self.robot.y1 += 50
+                self.robot.y2 += 50
+                self.robot.y3 += 50
+            else:
+                cur_except = "robot will go out of bounds :("
         draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(0.5)
+        if cur_except != "robot will go out of bounds :(":
+            time.sleep(0.5)
 
     def ROTATE_LEFT(self):
         if self.dire == "right":
@@ -146,8 +139,9 @@ class RobotActions:
             self.robot.x3 += 25
             self.robot.y3 += 25
             self.dire = "down"
-        draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(0.5)
+        if cur_except != "robot will go out of bounds :(":
+            draw_window(robot.getXpos(), robot.getYpos())
+            time.sleep(0.5)
 
     def ROTATE_RIGHT(self):
         if self.dire == "right":
@@ -174,22 +168,24 @@ class RobotActions:
             self.robot.x3 += 25
             self.robot.y3 -= 25
             self.dire = "up"
-        draw_window(robot.getXpos(), robot.getYpos())
-        time.sleep(0.5)
+        if cur_except != "robot will go out of bounds :(":
+            draw_window(robot.getXpos(), robot.getYpos())
+            time.sleep(0.5)
 
     def ok(self, *args):
+        hitMap = {}
         for arg in args:
             x, y = arg[0], arg[1]
             if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100))):
                 return False
-            else:
-                for bad in self.badSquares:
-                    temp1, temp2 = bad[0], bad[1]
-                    #it's okay if it touches the next square (<)
-                    if (temp1 < y <= (temp1 + 50)) and (temp2 < x <= (temp2 + 50)):
-                        return False
-                else:
-                    return True
+            for bad in self.badSquares:
+                temp1, temp2 = bad[0], bad[1]
+                if (temp1 <= y <= (temp1 + 50)) and (temp2 <= x <= (temp2 + 50)):
+                    hitMap[bad] = 1 + hitMap.get(bad, 0)
+                    break
+        if len(args) == max(hitMap.values()):
+            return False
+        return True
     
     def CAN_MOVE(self, direc):
         global cur_except
