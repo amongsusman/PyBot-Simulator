@@ -15,6 +15,18 @@ gen3 = pygame.font.SysFont("consolas", 15)
 FPS = 60
 WIDTH, HEIGHT = 1200, 800
 MALICIOUS = ["import", "os", "open", "exec", "eval"]
+VALID_KEYS = (
+    pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5,
+    pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9, 
+    pygame.K_a, pygame.K_b, pygame.K_c, pygame.K_d, pygame.K_e, pygame.K_f, 
+    pygame.K_g, pygame.K_h, pygame.K_i, pygame.K_j, pygame.K_k, pygame.K_l, 
+    pygame.K_m, pygame.K_n, pygame.K_o, pygame.K_p, pygame.K_q, pygame.K_r, 
+    pygame.K_s, pygame.K_t, pygame.K_u, pygame.K_v, pygame.K_w, pygame.K_x, 
+    pygame.K_y, pygame.K_z, 
+    pygame.K_SPACE, pygame.K_PERIOD, pygame.K_COMMA, pygame.K_MINUS, pygame.K_EQUALS,
+    pygame.K_LEFTBRACKET, pygame.K_RIGHTBRACKET, pygame.K_SEMICOLON, pygame.K_QUOTE,
+    pygame.K_BACKQUOTE, pygame.K_SLASH, pygame.K_BACKSLASH
+)
 
 #colors
 WHITE = (255, 255, 255)
@@ -38,7 +50,8 @@ cursorAvailable = False
 cur_except = ""
 pointer = 0
 last_mouse_pos = (None, None)
-squaresSelected = [[False] * 24 for i in range(10)]
+last_enter_pos = []
+squaresSelected = [[False] * 24 for _ in range(10)]
 
 #classes
 class ObjectInterface():
@@ -245,12 +258,15 @@ def drawException():
         window.blit(excep_text, (735, 525 + (i * 30)))
 
 def deleteText():
-    global delayBackspace, lastBackspace, user_text, last_mouse_pos
+    global delayBackspace, lastBackspace, user_text, last_mouse_pos, last_enter_pos
     keys = pygame.key.get_pressed() 
     if active and keys[pygame.K_BACKSPACE]:
         cur_time = pygame.time.get_ticks()
         if cur_time - lastBackspace >= delayBackspace:
             lastBackspace = cur_time
+            if user_text and user_text[-1] == "\n":
+                last_mouse_pos = last_enter_pos[-1]
+                last_enter_pos.pop()
             user_text = user_text[:-1]             
             if last_mouse_pos != (None, None):
                 last_mouse_pos = (max(10, last_mouse_pos[0] - 14), last_mouse_pos[1])
@@ -293,7 +309,7 @@ def draw_window(pxs, pys):
     pygame.display.update()
         
 def main():
-    global user_text, active, cur_except, robot, last_mouse_pos, actions, pointer
+    global user_text, active, cur_except, robot, last_mouse_pos, actions, pointer, last_enter_pos
     clock = pygame.time.Clock()
     clock.tick(FPS)
     run = True  
@@ -354,13 +370,14 @@ def main():
                 if active:
                     if event.key == pygame.K_RETURN:
                         if last_mouse_pos != (None, None):
+                            last_enter_pos.append(last_mouse_pos)
                             last_mouse_pos = (10, last_mouse_pos[1] + 30)
                         user_text += "\n"
                     elif event.key == pygame.K_TAB:
                         if last_mouse_pos != (None, None):
                             last_mouse_pos = (last_mouse_pos[0] + 42, last_mouse_pos[1])
                         user_text += "   "
-                    elif event.key not in [pygame.K_BACKSPACE, pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_CAPSLOCK]:
+                    elif event.key in VALID_KEYS:
                         if last_mouse_pos != (None, None):
                             last_mouse_pos = (last_mouse_pos[0] + 14, last_mouse_pos[1])
                         user_text += event.unicode
