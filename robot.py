@@ -239,8 +239,10 @@ def draw_grid():
             
 def drawText():
     lines = user_text.splitlines()
+    #only shows the text currently on screen
     lines = lines[pointer:]
     for i, line in enumerate(lines):
+        #goes through each line of the user_text and prints them out on separate lines
         code = gen.render(line, True, BLACK) 
         window.blit(code, (10, (HEIGHT / 2) + 105 + i * 30))
 
@@ -269,6 +271,7 @@ def deleteText():
                 last_enter_pos.pop()
             user_text = user_text[:-1]             
             if last_mouse_pos != (None, None):
+                #it can't go further left and the y-position is always the same
                 last_mouse_pos = (max(10, last_mouse_pos[0] - 14), last_mouse_pos[1])
             
 def mouseFlicker(pos):
@@ -277,6 +280,8 @@ def mouseFlicker(pos):
         return
     cur_time = pygame.time.get_ticks()
     if cur_time - lastMouse >= delayMouse:
+        #makes flickering effect
+            #if cursor is on, it becomes off, vice versa
         cursorAvailable = not cursorAvailable
         lastMouse = cur_time  
     if cursorAvailable:
@@ -359,6 +364,7 @@ def main():
                             if not cur_except:
                                 cur_except = "program no like malicious code :("
                         finally:
+                            #resets the robot position and direction
                             robot.x1 = 0
                             robot.x2 = 0
                             robot.x3 = 50
@@ -371,10 +377,12 @@ def main():
                     if event.key == pygame.K_RETURN:
                         if last_mouse_pos != (None, None):
                             last_enter_pos.append(last_mouse_pos)
+                            #changes the y position by 30 pixels
                             last_mouse_pos = (10, last_mouse_pos[1] + 30)
                         user_text += "\n"
                     elif event.key == pygame.K_TAB:
                         if last_mouse_pos != (None, None):
+                            #42 for 14 pixels per space
                             last_mouse_pos = (last_mouse_pos[0] + 42, last_mouse_pos[1])
                         user_text += "   "
                     elif event.key in VALID_KEYS:
