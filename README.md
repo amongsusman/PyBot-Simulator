@@ -14,7 +14,7 @@ The four main robot functions that users can run from the APCSP pseudocode are:
   
   ROTATE_LEFT() - rotates the robot left 90 degrees
   
-  CAN_MOVE(direction) - returns a boolean value (True or False) that depends on whether the robot can move in direction
+  CAN_MOVE(direction) - returns a boolean value (True or False) that depends on whether the robot can move in direction it is facing
   
 direction -> "forward, backward, left, right"
 
