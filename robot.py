@@ -202,27 +202,41 @@ class RobotActions:
     def CAN_MOVE(self, direc):
         global cur_except
         x1, y1, x2, y2, x3, y3 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
-        if direc == "forward":
-            if self.dire == "right":
-                if self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
-                    return True
-            elif self.dire == "left":
-                if self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
-                    return True
-            elif self.dire == "up":
-                if self.check_collision([x1, y1], [x2, y2], [x3, y3]):
-                    return True
-            else:
-                if self.check_collision([x1, y1], [x2, y2], [x3, y3]):
-                    return True
-        elif direc == "backward":
-            if self.check_collision([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
+        if self.dire == "left":
+            if direc == "left" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
                 return True
-        elif direc == "left":
-            if self.check_collision([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
+            elif direc == "right" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
-        elif direc == "right":
-            if self.check_collision([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
+            elif direc == "forward" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+                return True
+            elif direc == "backward" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+                return True
+        elif self.dire == "right":
+            if direc == "left" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+                return True
+            elif direc == "right" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+                return True
+            elif direc == "forward" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+                return True
+            elif direc == "backward" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+                return True
+        elif self.dire == "up":
+            if direc == "left" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+                return True
+            elif direc == "right" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+                return True
+            elif direc == "forward" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+                return True
+            elif direc == "backward" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+                return True
+        else:
+            if direc == "left" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+                return True
+            elif direc == "right" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+                return True
+            elif direc == "forward" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+                return True
+            elif direc == "backward" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
         return False
 
