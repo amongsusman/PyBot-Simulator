@@ -90,7 +90,7 @@ class RobotActions:
         if self.dire == "right":
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([xs[0] + 50, ys[0]], [xs[1] + 50, ys[1]], [xs[2] + 50, ys[2]]):
+            if self.check_collision([xs[0] + 50, ys[0]], [xs[1] + 50, ys[1]], [xs[2] + 50, ys[2]]):
                 self.robot.x1 += 50
                 self.robot.x2 += 50
                 self.robot.x3 += 50
@@ -99,7 +99,7 @@ class RobotActions:
         elif self.dire == "left":
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([xs[0] - 50, ys[0]], [xs[1] - 50, ys[1]], [xs[2] - 50, ys[2]]):
+            if self.check_collision([xs[0] - 50, ys[0]], [xs[1] - 50, ys[1]], [xs[2] - 50, ys[2]]):
                 self.robot.x1 -= 50
                 self.robot.x2 -= 50
                 self.robot.x3 -= 50
@@ -108,7 +108,7 @@ class RobotActions:
         elif self.dire == "up":
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([xs[0], ys[0] - 50], [xs[1], ys[1] - 50], [xs[2], ys[2] - 50]):
+            if self.check_collision([xs[0], ys[0] - 50], [xs[1], ys[1] - 50], [xs[2], ys[2] - 50]):
                 self.robot.y1 -= 50
                 self.robot.y2 -= 50
                 self.robot.y3 -= 50
@@ -117,7 +117,7 @@ class RobotActions:
         else:
             xs = (self.robot.x1, self.robot.x2, self.robot.x3)
             ys = (self.robot.y1, self.robot.y2, self.robot.y3)
-            if self.ok([xs[0], ys[0] + 50], [xs[1], ys[1] + 50], [xs[2], ys[2] + 50]):
+            if self.check_collision([xs[0], ys[0] + 50], [xs[1], ys[1] + 50], [xs[2], ys[2] + 50]):
                 self.robot.y1 += 50
                 self.robot.y2 += 50
                 self.robot.y3 += 50
@@ -185,34 +185,44 @@ class RobotActions:
             draw_window(robot.getXpos(), robot.getYpos())
             time.sleep(0.25)
 
-    def ok(self, *args):
-        hitMap = {}
+    def check_collision(self, *args):
+        wall_hits = {}
         for arg in args:
             x, y = arg[0], arg[1]
             if not ((0 <= x <= WIDTH) & (0 <= y <= ((HEIGHT / 2) + 100))):
                 return False
-            for bad in self.badSquares:
-                temp1, temp2 = bad[0], bad[1]
+            for wall in self.badSquares:
+                temp1, temp2 = wall[0], wall[1]
                 if (temp1 <= y <= (temp1 + 50)) and (temp2 <= x <= (temp2 + 50)):
-                    hitMap[bad] = 1 + hitMap.get(bad, 0)
-        if hitMap.values() and len(args) == max(hitMap.values()):
+                    wall_hits[wall] = 1 + wall_hits.get(wall, 0)
+        if wall_hits.values() and len(args) == max(wall_hits.values()):
             return False
         return True
     
     def CAN_MOVE(self, direc):
         global cur_except
-        t1, t2, t3, t4, t5, t6 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
+        x1, y1, x2, y2, x3, y3 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
         if direc == "forward":
-            if self.ok([t1, t2 + 50], [t3, t4 + 50], [t5, t6 + 50]):
-                return True
+            if self.dire == "right":
+                if self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+                    return True
+            elif self.dire == "left":
+                if self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+                    return True
+            elif self.dire == "up":
+                if self.check_collision([x1, y1], [x2, y2], [x3, y3]):
+                    return True
+            else:
+                if self.check_collision([x1, y1], [x2, y2], [x3, y3]):
+                    return True
         elif direc == "backward":
-            if self.ok([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
+            if self.check_collision([t1, t2 - 50], [t3, t4 - 50], [t5, t6 - 50]):
                 return True
         elif direc == "left":
-            if self.ok([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
+            if self.check_collision([t1 - 50, t2], [t3 - 50, t4], [t5 - 50, t6]):
                 return True
         elif direc == "right":
-            if self.ok([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
+            if self.check_collision([t1 + 50, t2], [t3 + 50, t4], [t5 + 50, t6]):
                 return True
         return False
 
