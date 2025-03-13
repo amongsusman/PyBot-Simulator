@@ -203,40 +203,40 @@ class RobotActions:
         global cur_except
         x1, y1, x2, y2, x3, y3 = self.robot.x1, self.robot.y1, self.robot.x2, self.robot.y2, self.robot.x3, self.robot.y3
         if self.dire == "left":
-            if direc == "left" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+            if direc == "left" and self.check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
                 return True
-            elif direc == "right" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+            elif direc == "right" and self.check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
-            elif direc == "forward" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+            elif direc == "forward" and self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
                 return True
-            elif direc == "backward" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+            elif direc == "backward" and self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
                 return True
         elif self.dire == "right":
-            if direc == "left" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+            if direc == "left" and self.check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
-            elif direc == "right" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+            elif direc == "right" and self.check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
                 return True
-            elif direc == "forward" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+            elif direc == "forward" and self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
                 return True
-            elif direc == "backward" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+            elif direc == "backward" and self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
                 return True
         elif self.dire == "up":
-            if direc == "left" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+            if direc == "left" and self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
                 return True
-            elif direc == "right" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+            elif direc == "right" and self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
                 return True
-            elif direc == "forward" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+            elif direc == "forward" and self.check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
-            elif direc == "backward" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+            elif direc == "backward" and self.check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
                 return True
         else:
-            if direc == "left" and check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
+            if direc == "left" and self.check_collision([x1 + 50, y1], [x2 + 50, y2], [x3 + 50, y3]):
                 return True
-            elif direc == "right" and check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
+            elif direc == "right" and self.check_collision([x1 - 50, y1], [x2 - 50, y2], [x3 - 50, y3]):
                 return True
-            elif direc == "forward" and check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
+            elif direc == "forward" and self.check_collision([x1, y1 + 50], [x2, y2 + 50], [x3, y3 + 50]):
                 return True
-            elif direc == "backward" and check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
+            elif direc == "backward" and self.check_collision([x1, y1 - 50], [x2, y2 - 50], [x3, y3 - 50]):
                 return True
         return False
 
